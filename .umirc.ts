@@ -7,6 +7,11 @@ export default defineConfig({
     { path: "/", component: "index" },
   ],
   npmClient: 'yarn',
+  runtimePublicPath: {},
+  headScripts: process.env.NODE_ENV === 'production' ? [
+    'window.publicPath = "./";'
+  ]: [],
+  publicPath:  process.env.NODE_ENV === 'production' ? './' : '/',
   history: {
     type: 'hash'
   }

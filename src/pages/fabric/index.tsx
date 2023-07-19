@@ -27,6 +27,7 @@ const drawGrid = (canvas: fabric.Canvas) => {
 
 const createFabric = ($canvas: HTMLCanvasElement) => {
     
+    fabric.Object.prototype.transparentCorners = false;
     const canvas = new fabric.Canvas($canvas, {
         allowTouchScrolling: true,
         selection: false,
@@ -38,6 +39,16 @@ const createFabric = ($canvas: HTMLCanvasElement) => {
     const green = new fabric.Rect({
         top: 100, left: 100, width: 60, height: 60, fill: 'green', selectable: false });
     canvas.add(red, blue, green);
+
+
+    const getPos = (event: any) => {
+        const touchEvent = event.e;
+        if (!touchEvent) return null;
+        const touche = touchEvent.touches ? touchEvent.touches[0] : touchEvent;
+        if (!touche) return null;
+        return [touche.clientX, touche.clientY];
+    }
+    
 
     const activeObj: any = {
         /** 选中元素 */
@@ -74,8 +85,7 @@ const createFabric = ($canvas: HTMLCanvasElement) => {
                 viewportTransform[5],
             ]
         };
-        const evt = event.e;
-        activeObj.mousePos = [evt.clientX,  evt.clientY];
+        activeObj.mousePos = getPos(event);
     })
 
     
@@ -84,13 +94,14 @@ const createFabric = ($canvas: HTMLCanvasElement) => {
         if (activeObj.target) {
             canvas.setActiveObject(activeObj.target);
         }
-        if (!activeObj.mousePos) return;
+        if (!activeObj.mousePos || !pos) return;
         const mousePos =activeObj.mousePos;
         checkDraging(pos);
         const deltaX = pos[0] - mousePos[0];
         const deltaY = pos[1] - mousePos[1];
 
         const viewPos = activeObj.viewPos;
+        
 
         if (activeObj.target) {
             // 选中元素操作 则忽略
@@ -100,6 +111,7 @@ const createFabric = ($canvas: HTMLCanvasElement) => {
             return;
         }
         const viewportTransform = canvas.viewportTransform;
+        
         // @ts-ignore
         viewportTransform[4] = deltaX + viewPos[0];
         // @ts-ignore
@@ -110,21 +122,25 @@ const createFabric = ($canvas: HTMLCanvasElement) => {
     }
 
     canvas.on('mouse:move', function (event) {
-        const evt = event.e;
-        handleMoveUpdate(event.target, [evt.clientX, evt.clientY]);
+        const pos = getPos(event);
+        handleMoveUpdate(event.target, pos);
         canvas.requestRenderAll();
     })
 
     canvas.on('mouse:up', function (event) {
-        const evt = event.e;
-        handleMoveUpdate(event.target, [evt.clientX, evt.clientY]);
+        const pos = getPos(event);
+        handleMoveUpdate(event.target, pos);
         
         if (!activeObj.isDraging) {
             activeObj.target = event.target;
         }
         if (activeObj.target) {
             canvas.setActiveObject(activeObj.target);
+        } else {
+            // @ts-ignore
+            canvas._activeObject = null;
         }
+        
         activeObj.isDraging = false;
         activeObj.mousePos = null;
         canvas.requestRenderAll();
@@ -144,7 +160,7 @@ export default function FabricPage() {
 
     return (
     <div className={styles.page}>
-        <canvas id="canvas" ref={ref} width="600" height="600"></canvas>
+        <canvas ref={ref} width="600" height="600"></canvas>
     </div>
     );
 }
