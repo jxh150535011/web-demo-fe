@@ -30,14 +30,14 @@ const createFabric = ($canvas: HTMLCanvasElement) => {
     fabric.Object.prototype.transparentCorners = false;
     const canvas = new fabric.Canvas($canvas, {
         allowTouchScrolling: true,
-        selection: false,
+        selection: false
     });
     const red = new fabric.Rect({
-        top: 100, left: 0, width: 80, height: 50, fill: 'red', selectable: false });
+        top: 100, left: 0, width: 80, height: 50, fill: 'red', selectable: false, borderOpacityWhenMoving: 1 });
     const blue = new fabric.Rect({
-        top: 0, left: 100, width: 50, height: 70, fill: 'blue', selectable: false });
+        top: 0, left: 100, width: 50, height: 70, fill: 'blue', selectable: false, borderOpacityWhenMoving: 1 });
     const green = new fabric.Rect({
-        top: 100, left: 100, width: 60, height: 60, fill: 'green', selectable: false });
+        top: 100, left: 100, width: 60, height: 60, fill: 'green', selectable: false, borderOpacityWhenMoving: 1 });
     canvas.add(red, blue, green);
 
 
@@ -72,6 +72,36 @@ const createFabric = ($canvas: HTMLCanvasElement) => {
         return true;
     }
 
+    const handleMoveUpdate = (target: any, pos: any) => {
+        if (activeObj.target) {
+            canvas.setActiveObject(activeObj.target);
+        }
+        if (!activeObj.mousePos || !pos) return;
+        const mousePos =activeObj.mousePos;
+        checkDraging(pos);
+        const deltaX = pos[0] - mousePos[0];
+        const deltaY = pos[1] - mousePos[1];
+
+        const viewPos = activeObj.viewPos;
+
+        if (activeObj.target) {
+            // 选中元素操作 和 操作的元素是同一个元素，则用框架本身的处理逻辑
+            if (target ===activeObj.target) return;
+            activeObj.target.left = deltaX + viewPos[0];
+            activeObj.target.top = deltaY + viewPos[1];
+            return;
+        }
+        const viewportTransform = canvas.viewportTransform;
+        
+        // @ts-ignore
+        viewportTransform[4] = deltaX + viewPos[0];
+        // @ts-ignore
+        viewportTransform[5] = deltaY + viewPos[1];
+        // @ts-ignore
+        canvas.setViewportTransform(viewportTransform);
+        
+    }
+
     canvas.on('mouse:down', function(event) {
         const viewportTransform = canvas.viewportTransform;
         if (activeObj.target) {
@@ -87,39 +117,6 @@ const createFabric = ($canvas: HTMLCanvasElement) => {
         };
         activeObj.mousePos = getPos(event);
     })
-
-    
-
-    const handleMoveUpdate = (target: any, pos: any) => {
-        if (activeObj.target) {
-            canvas.setActiveObject(activeObj.target);
-        }
-        if (!activeObj.mousePos || !pos) return;
-        const mousePos =activeObj.mousePos;
-        checkDraging(pos);
-        const deltaX = pos[0] - mousePos[0];
-        const deltaY = pos[1] - mousePos[1];
-
-        const viewPos = activeObj.viewPos;
-        
-
-        if (activeObj.target) {
-            // 选中元素操作 则忽略
-            if (target) return;
-            activeObj.target.left = deltaX + viewPos[0];
-            activeObj.target.top = deltaY + viewPos[1];
-            return;
-        }
-        const viewportTransform = canvas.viewportTransform;
-        
-        // @ts-ignore
-        viewportTransform[4] = deltaX + viewPos[0];
-        // @ts-ignore
-        viewportTransform[5] = deltaY + viewPos[1];
-        // @ts-ignore
-        canvas.setViewportTransform(viewportTransform);
-        
-    }
 
     canvas.on('mouse:move', function (event) {
         const pos = getPos(event);
