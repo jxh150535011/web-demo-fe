@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "author": "jxh150535011 <150535011@qq.com>",
+  "scripts": {
+    "dev": "umi dev",
+    "build": "umi build",
+    "postinstall": "umi setup",
+    "setup": "umi setup",
+    "start": "npm run dev"
+  },
+  "dependencies": {
+    "fabric": "^5.3.0",
+    "umi": "^4.0.72"
+  },
+  "devDependencies": {
+    "@types/fabric": "^5.3.3",
+    "@types/react": "^18.0.33",
+    "@types/react-dom": "^18.0.11",
+    "typescript": "^5.0.3"
+  }
+}
